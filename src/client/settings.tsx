@@ -73,16 +73,26 @@ export function Settings({
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // The two one-per-line lists are edited as text and split on save. Splitting
+  // on every keystroke drops the empty line Enter just made, so a second entry
+  // could never be started.
+  const [suggestedText, setSuggestedText] = useState(mascot.suggested.join("\n"));
+  const [originsText, setOriginsText] = useState(mascot.allowed_origins.join("\n"));
 
-  useEffect(() => setForm(strip(mascot)), [mascot]);
+  useEffect(() => {
+    setForm(strip(mascot));
+    setSuggestedText(mascot.suggested.join("\n"));
+    setOriginsText(mascot.allowed_origins.join("\n"));
+  }, [mascot]);
 
   const set = <K extends keyof MascotWrite>(k: K, v: MascotWrite[K]) => setForm((f) => ({ ...f, [k]: v }));
   const snippet = `<script src="${origin}/w/${mascot.key}.js" async></script>`;
+  const origins = lines(originsText, 20);
 
   async function save() {
     setSaving(true);
     try {
-      await onSave(form);
+      await onSave({ ...form, suggested: lines(suggestedText, 6), allowed_origins: origins });
     } finally {
       setSaving(false);
     }
@@ -148,8 +158,8 @@ export function Settings({
             <textarea
               className={inputClass}
               rows={3}
-              value={form.suggested.join("\n")}
-              onChange={(e) => set("suggested", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, 6))}
+              value={suggestedText}
+              onChange={(e) => setSuggestedText(e.target.value)}
             />
           </Field>
         </div>
@@ -287,10 +297,8 @@ export function Settings({
               className={inputClass}
               rows={3}
               placeholder="acme.com"
-              value={form.allowed_origins.join("\n")}
-              onChange={(e) =>
-                set("allowed_origins", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, 20))
-              }
+              value={originsText}
+              onChange={(e) => setOriginsText(e.target.value)}
             />
           </Field>
           <Field label="Answers per day" hint="Past this it stops answering and starts taking messages until tomorrow.">
@@ -302,7 +310,7 @@ export function Settings({
               onChange={(e) => set("daily_reply_cap", Math.max(0, Number(e.target.value) || 0))}
             />
           </Field>
-          {form.allowed_origins.length === 0 && (
+          {origins.length === 0 && (
             <p className="rounded-md bg-warning-tint px-3 py-2 text-sm text-warning">
               Add the website this belongs on, or the widget will refuse every visitor.
             </p>
@@ -333,6 +341,10 @@ export function Settings({
       )}
     </div>
   );
+}
+
+function lines(text: string, max: number): string[] {
+  return text.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, max);
 }
 
 function strip(m: Mascot): MascotWrite {
