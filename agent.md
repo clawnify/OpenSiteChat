@@ -1,4 +1,4 @@
-# OpenMascot — how to run this app
+# OpenSiteChat — how to run this app
 
 A branded assistant on the owner's own website. It answers visitors from
 material the owner controls, and hands the conversation to a person whenever one

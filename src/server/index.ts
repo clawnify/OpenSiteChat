@@ -1,4 +1,4 @@
-// OpenMascot — the API.
+// OpenSiteChat — the API.
 //
 // `createApp` brings the OpenAPI router, the per-request database wiring, and
 // the two discovery routes (`/api/openapi.json`, `/llms.txt`) that let the org's
@@ -13,7 +13,7 @@ import { registerPreview } from "./routes/preview.js";
 import { registerPublic } from "./routes/public.js";
 
 const app = createApp<Env>({
-  title: "OpenMascot",
+  title: "OpenSiteChat",
   version: "1.0.0",
   description:
     "A branded assistant on a company's own website: it answers visitors from material the company controls, captures who was asking, and hands the conversation to a person whenever one is wanted.",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://app.clawnify.com/schema/v1/clawnify.json",
   "version": 1,
-  "name": "Site assistant",
+  "name": "Site chat",
   "description": "Your mascot, answering visitors on your own website. One script tag puts a branded assistant on any site: it answers from content you control, captures who asked, and hands the conversation to a real person whenever you want one. Run it as an AI first responder with human takeover, or turn the AI off and use it as a plain live-chat box under your own character.",
   "icon": "icon.svg",
   "tags": [
@@ -13,7 +13,7 @@
     "marketing"
   ],
   "template": {
-    "displayName": "Site assistant",
+    "displayName": "Site chat",
     "category": "Marketing"
   },
   "app": {

@@ -69,7 +69,7 @@ export function App() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <AppNav
-        title="OpenMascot"
+        title="OpenSiteChat"
         icon="message-square"
         groups={[{ items: nav }]}
         active={view}
