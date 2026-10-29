@@ -1,13 +1,13 @@
-# OpenMascot
+# OpenSiteChat
 
 **Your mascot, answering visitors on your own website.**
 
-[![Deploy to Clawnify](https://app.clawnify.com/deploy-button.svg)](https://app.clawnify.com/deploy?repo=clawnify/OpenMascot)
+[![Deploy to Clawnify](https://app.clawnify.com/deploy-button.svg)](https://app.clawnify.com/deploy?repo=clawnify/OpenSiteChat)
 
 An open-source app template provided by [Clawnify.com](https://clawnify.com).
 
 Most companies already have a character: the one on the van, the one in the
-newsletter sign-off, the one everybody at the office calls by name. OpenMascot
+newsletter sign-off, the one everybody at the office calls by name. OpenSiteChat
 puts that character on your website as an assistant, so a visitor at 22:00 gets
 an answer instead of a contact form.
 

@@ -113,7 +113,7 @@ export async function answer(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": "https://clawnify.com",
-      "X-Title": "OpenMascot",
+      "X-Title": "OpenSiteChat",
     },
     body: JSON.stringify({
       model: env.MASCOT_MODEL || DEFAULT_MODEL,

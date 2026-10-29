@@ -62,7 +62,7 @@ export async function fetchPage(url: string): Promise<FetchedPage> {
   }
 
   const res = await fetch(parsed.toString(), {
-    headers: { "User-Agent": "OpenMascot (+https://clawnify.com)", Accept: "text/html,text/plain" },
+    headers: { "User-Agent": "OpenSiteChat (+https://clawnify.com)", Accept: "text/html,text/plain" },
     redirect: "follow",
   });
   if (!res.ok) throw new Error(`That page answered ${res.status}.`);
