@@ -259,7 +259,7 @@ const SCRIPT = String.raw`(function () {
     if (state.open) {
       if (!log.childElementCount) greet();
       field.focus();
-      poll();
+      startPolling();
     }
   }
 
@@ -367,6 +367,10 @@ const SCRIPT = String.raw`(function () {
         remember();
         var replies = data.messages || [];
         replies.forEach(add);
+        // The first reply is what creates the conversation, so this is the
+        // first moment there is anything to ask for. After add(), so the first
+        // poll asks only for what came after these replies.
+        startPolling();
         if (!replies.length && data.status !== "ai") {
           receipt("Sent. Someone will reply here.");
         }
@@ -389,8 +393,18 @@ const SCRIPT = String.raw`(function () {
   // the panel asks while it is open. It stops the moment it is closed: a widget
   // that keeps polling on every page of a site nobody is chatting on is a cost
   // the customer never agreed to.
+  //
+  // One loop at a time. It starts when the panel opens on a conversation it
+  // already has, or when the first reply creates one, and it ends on close.
+  var polling = false;
+  function startPolling() {
+    if (polling || PREVIEW || !state.open || !state.convo) return;
+    polling = true;
+    poll();
+  }
+
   function poll() {
-    if (PREVIEW || !state.open || !state.convo) return;
+    if (!state.open) { polling = false; return; }
     var url = CFG.origin + "/api/public/messages?key=" + encodeURIComponent(CFG.key) +
       "&conversation=" + encodeURIComponent(state.convo) +
       "&token=" + encodeURIComponent(state.token) +
@@ -406,7 +420,10 @@ const SCRIPT = String.raw`(function () {
         if (data && data.status) { state.status = data.status; setState(stateFor(data.status)); }
       })
       .catch(function () {})
-      .then(function () { if (state.open) setTimeout(poll, 6000); });
+      .then(function () {
+        if (state.open) setTimeout(poll, 6000);
+        else polling = false;
+      });
   }
 
   function post(path, body) {
