@@ -184,13 +184,15 @@ const SCRIPT = String.raw`(function () {
   wrap.style.setProperty("--accent", CFG.accent || "#4f46e5");
   wrap.style.setProperty("--ink", CFG.ink || "#ffffff");
   var avatar = CFG.avatarUrl ? '<img src="' + esc(CFG.avatarUrl) + '" alt="">' : "";
+  // Must stay above the two marks below: a var read before its assignment is
+  // undefined, and the launcher would print the word.
+  var bubbleSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-4.3-.9L3 20l1.3-4.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>';
   // Precedence: a drawn character, then an uploaded image, then the fallback
   // glyph. The character is preferred at 34px and 56px because an illustration
   // is a smudge at that size and a silhouette is a mark.
   var headMark = CFG.charHead || avatar || bubbleSvg;
   var launchMark = CFG.charLaunch || avatar || bubbleSvg;
   var hasCh = CFG.charLaunch ? " om-has" : "";
-  var bubbleSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-4.3-.9L3 20l1.3-4.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>';
 
   wrap.innerHTML =
     '<div class="panel" role="dialog" aria-label="Chat with ' + esc(CFG.name) + '">' +
