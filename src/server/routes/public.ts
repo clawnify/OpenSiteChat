@@ -31,7 +31,7 @@ import {
   minuteAgo,
   originAllowed,
 } from "../perimeter.js";
-import { widgetScript } from "../widget.js";
+import { aiLabel, widgetScript } from "../widget.js";
 import { characterSvg, contrastOn, hasCharacter } from "../character.js";
 
 /** The loader is read on every page view of the customer's site and changes
@@ -82,6 +82,7 @@ export function registerPublic(app: App) {
         ink: contrastOn(m.accent),
         charLaunch: drawn ? characterSvg(spec, 38, "l") : "",
         charHead: drawn ? characterSvg(spec, 26, "h") : "",
+        aiLabel: aiLabel(m.mode, m.locale),
       }),
       200,
       { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": SCRIPT_CACHE },

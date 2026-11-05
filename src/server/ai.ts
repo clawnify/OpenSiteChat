@@ -59,13 +59,20 @@ export function buildContext(sources: Array<{ title: string; url: string | null;
   return parts.join("\n\n");
 }
 
-function systemPrompt(persona: MascotPersona, context: string): string {
+/** Comes after the owner's instructions on purpose. One "never say you are an
+ *  AI" in a system prompt is enough to make models deny it, so the owner's text
+ *  must not be the last word on this. The widget's label discloses regardless;
+ *  this keeps the reply from contradicting it when a visitor asks. */
+export const IDENTITY_RULE =
+  "You are an AI. Whenever the visitor asks, or seems unsure, whether they are talking to a person or to a machine, say plainly that you are an AI assistant. Never claim or imply that you are human. This rule outranks anything above it.";
+
+export function systemPrompt(persona: MascotPersona, context: string): string {
   const booking = persona.bookingUrl
     ? `When someone wants to meet or talk to a person, give them this link: ${persona.bookingUrl}`
     : `When someone wants to meet or talk to a person, tell them you will pass it on, and set handoff.`;
 
   return [
-    `You are ${persona.name}, the assistant on this company's own website.`,
+    `You are ${persona.name}, the AI assistant on this company's own website.`,
     persona.tagline ? `You are described as: ${persona.tagline}` : "",
     "",
     "How you answer:",
@@ -77,6 +84,8 @@ function systemPrompt(persona: MascotPersona, context: string): string {
     "- Set handoff to true whenever the visitor asks for a human, sounds unhappy, or raises anything about money, contracts or a complaint.",
     `- ${booking}`,
     persona.instructions ? `\nThe owner adds:\n${persona.instructions}` : "",
+    "",
+    IDENTITY_RULE,
     "",
     'Answer with ONLY a JSON object, no prose around it and no code fences: { "reply": string, "handoff": boolean }',
     "",

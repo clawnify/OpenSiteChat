@@ -27,6 +27,33 @@ export interface WidgetConfig {
    *  widget should not ship a shape library it may never use. */
   charLaunch: string;
   charHead: string;
+  /** Marks every message the assistant writes as AI, or "" when no AI ever
+   *  answers. From aiLabel, never configured. */
+  aiLabel: string;
+}
+
+// EU AI Act Art. 50(1): a person chatting with an AI must be told so, clearly,
+// from the first interaction. The label rides on the speaker line of every
+// message the assistant writes, so it is already on the opening line before the
+// visitor types anything, and it is absent from a colleague's reply, which a
+// person wrote. It lives in code with no setting: the site owner deploys the
+// widget but cannot waive the duty, and a greeting or house rule can be edited
+// away.
+const AI_LABELS: Record<string, string> = {
+  en: "AI assistant",
+  nl: "AI-assistent",
+  de: "KI-Assistent",
+  fr: "Assistant IA",
+  es: "Asistente de IA",
+  it: "Assistente IA",
+};
+
+/** The disclosure for a mascot in its own language, or "" in the mode where
+ *  the AI is never called and every reply comes from a person. */
+export function aiLabel(mode: string, locale: string): string {
+  if (mode !== "ai") return "";
+  const lang = (locale || "").toLowerCase().split(/[-_]/)[0];
+  return AI_LABELS[lang] ?? AI_LABELS.en;
 }
 
 /** Injected as JSON rather than interpolated field by field: one escape
@@ -157,13 +184,15 @@ const SCRIPT = String.raw`(function () {
   wrap.style.setProperty("--accent", CFG.accent || "#4f46e5");
   wrap.style.setProperty("--ink", CFG.ink || "#ffffff");
   var avatar = CFG.avatarUrl ? '<img src="' + esc(CFG.avatarUrl) + '" alt="">' : "";
+  // Must stay above the two marks below: a var read before its assignment is
+  // undefined, and the launcher would print the word.
+  var bubbleSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-4.3-.9L3 20l1.3-4.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>';
   // Precedence: a drawn character, then an uploaded image, then the fallback
   // glyph. The character is preferred at 34px and 56px because an illustration
   // is a smudge at that size and a silhouette is a mark.
   var headMark = CFG.charHead || avatar || bubbleSvg;
   var launchMark = CFG.charLaunch || avatar || bubbleSvg;
   var hasCh = CFG.charLaunch ? " om-has" : "";
-  var bubbleSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.9 9.9 0 0 1-4.3-.9L3 20l1.3-4.1A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>';
 
   wrap.innerHTML =
     '<div class="panel" role="dialog" aria-label="Chat with ' + esc(CFG.name) + '">' +
@@ -230,7 +259,7 @@ const SCRIPT = String.raw`(function () {
     if (state.open) {
       if (!log.childElementCount) greet();
       field.focus();
-      poll();
+      startPolling();
     }
   }
 
@@ -247,10 +276,12 @@ const SCRIPT = String.raw`(function () {
   }
 
   function add(m) {
-    if (m.role !== "visitor" && m.author_name) {
+    // Only the assistant's own lines carry the AI label; "human" is a colleague.
+    var label = m.role === "assistant" && CFG.aiLabel ? CFG.aiLabel : "";
+    if (m.role !== "visitor" && (m.author_name || label)) {
       var who = document.createElement("p");
       who.className = "who";
-      who.textContent = m.author_name;
+      who.textContent = [m.author_name, label].filter(Boolean).join(" · ");
       log.appendChild(who);
     }
     var el = document.createElement("div");
@@ -336,6 +367,10 @@ const SCRIPT = String.raw`(function () {
         remember();
         var replies = data.messages || [];
         replies.forEach(add);
+        // The first reply is what creates the conversation, so this is the
+        // first moment there is anything to ask for. After add(), so the first
+        // poll asks only for what came after these replies.
+        startPolling();
         if (!replies.length && data.status !== "ai") {
           receipt("Sent. Someone will reply here.");
         }
@@ -358,8 +393,18 @@ const SCRIPT = String.raw`(function () {
   // the panel asks while it is open. It stops the moment it is closed: a widget
   // that keeps polling on every page of a site nobody is chatting on is a cost
   // the customer never agreed to.
+  //
+  // One loop at a time. It starts when the panel opens on a conversation it
+  // already has, or when the first reply creates one, and it ends on close.
+  var polling = false;
+  function startPolling() {
+    if (polling || PREVIEW || !state.open || !state.convo) return;
+    polling = true;
+    poll();
+  }
+
   function poll() {
-    if (PREVIEW || !state.open || !state.convo) return;
+    if (!state.open) { polling = false; return; }
     var url = CFG.origin + "/api/public/messages?key=" + encodeURIComponent(CFG.key) +
       "&conversation=" + encodeURIComponent(state.convo) +
       "&token=" + encodeURIComponent(state.token) +
@@ -375,7 +420,10 @@ const SCRIPT = String.raw`(function () {
         if (data && data.status) { state.status = data.status; setState(stateFor(data.status)); }
       })
       .catch(function () {})
-      .then(function () { if (state.open) setTimeout(poll, 6000); });
+      .then(function () {
+        if (state.open) setTimeout(poll, 6000);
+        else polling = false;
+      });
   }
 
   function post(path, body) {
