@@ -27,6 +27,33 @@ export interface WidgetConfig {
    *  widget should not ship a shape library it may never use. */
   charLaunch: string;
   charHead: string;
+  /** Marks every message the assistant writes as AI, or "" when no AI ever
+   *  answers. From aiLabel, never configured. */
+  aiLabel: string;
+}
+
+// EU AI Act Art. 50(1): a person chatting with an AI must be told so, clearly,
+// from the first interaction. The label rides on the speaker line of every
+// message the assistant writes, so it is already on the opening line before the
+// visitor types anything, and it is absent from a colleague's reply, which a
+// person wrote. It lives in code with no setting: the site owner deploys the
+// widget but cannot waive the duty, and a greeting or house rule can be edited
+// away.
+const AI_LABELS: Record<string, string> = {
+  en: "AI assistant",
+  nl: "AI-assistent",
+  de: "KI-Assistent",
+  fr: "Assistant IA",
+  es: "Asistente de IA",
+  it: "Assistente IA",
+};
+
+/** The disclosure for a mascot in its own language, or "" in the mode where
+ *  the AI is never called and every reply comes from a person. */
+export function aiLabel(mode: string, locale: string): string {
+  if (mode !== "ai") return "";
+  const lang = (locale || "").toLowerCase().split(/[-_]/)[0];
+  return AI_LABELS[lang] ?? AI_LABELS.en;
 }
 
 /** Injected as JSON rather than interpolated field by field: one escape
@@ -247,10 +274,12 @@ const SCRIPT = String.raw`(function () {
   }
 
   function add(m) {
-    if (m.role !== "visitor" && m.author_name) {
+    // Only the assistant's own lines carry the AI label; "human" is a colleague.
+    var label = m.role === "assistant" && CFG.aiLabel ? CFG.aiLabel : "";
+    if (m.role !== "visitor" && (m.author_name || label)) {
       var who = document.createElement("p");
       who.className = "who";
-      who.textContent = m.author_name;
+      who.textContent = [m.author_name, label].filter(Boolean).join(" · ");
       log.appendChild(who);
     }
     var el = document.createElement("div");

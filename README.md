@@ -42,6 +42,9 @@ Two modes, one setting:
   rather than trusted: an unparseable answer becomes a handoff, not a shrug.
 - **Real people, in the same thread.** Take any conversation over and type as
   yourself. The visitor sees it on the page they are still standing on.
+- **Says it is an AI.** Every line the assistant writes is marked "AI assistant"
+  in the widget's language, from the opening line, as the EU AI Act requires.
+  Replies you type yourself are not. There is no setting that removes it.
 - **Who was asking.** Names and emails land on the conversation, so a good
   question becomes a lead rather than a log line.
 - **Your character, not ours.** Name, picture, colour, opening line, starter
